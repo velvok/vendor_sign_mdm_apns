@@ -1,14 +1,15 @@
 #!/bin/bash
 #!/bin/sh
+#This script uses the https://github.com/vuid-com/mdmvendorsign project to perform some of the vendors siging tasks.
 RED='\033[0;31m'
 NC='\033[0m'
 BLUE='\033[34m'
 function step1 {
 	echo -e "\n\nStarting step 1..."
-	echo -e "In this step, we are generating the vendors mdm private key and csr(certificate signing request).
+	echo -e "In this step, we are generating the vendors/siging authority mdm private key and csr(certificate signing request).
 	We will need to send this csr to Apple to get it signed. When we get a certificate from Apple, it gives us the ability/authority to generate APNS_MDM certificates.
 	This will expire in one year from today as mandated by Apple and must be rekewed next year.
-	To proceed, first enter a password to be used for the private key of the mdm vendor private key.
+	To proceed, first enter a password to be used for the private key of the mdm vendors/siging authority private key.
 	\033[31m Note that you will need to remember the password for future reference. \033[0m"
 	echo -e "Enter the vendor private key password(minimum password length - 5 charactors):"
 	read -s vendorPrivateKeyPassword;
@@ -21,6 +22,10 @@ function step1 {
 	# Creating a private key and csr for vendor. 
 	openssl genrsa -des3 -passout file:vendorPrivateKey.txt -out vendorPrivateKey.pem 2048
 	openssl req -new -passin file:vendorPrivateKey.txt -key vendorPrivateKey.pem -out vendor.csr
+	rm -rf output
+	rm -rf inputs
+	mkdir output
+	mkdir inputs
 	echo -e "${RED}***************Important*****************${NC}"
 	echo -e "First step is complete!! Now you need to go to https://developer.apple.com/account/ios/certificate/ and upload the vendor.csr by 
 	following the instructions in documentation DOC LINK HERE."
@@ -42,12 +47,13 @@ function step2 {
 	rm -f customerPrivateKey.pem
 	rm -f customer.csr
 	rm -f plist_encoded
+	vendorPrivateKey=`cat vendorPrivateKey.txt`
 	openssl x509 -inform der -in ./inputs/mdm.cer -out mdm.pem
-	openssl pkcs12 -export -passout file:vendorPrivateKey.txt -out vendor.p12 -passin file:vendorPrivateKey.txt -inkey vendorPrivateKey.pem -in mdm.pem 
-	openssl pkcs12 -passin file:vendorPrivateKey.txt -in vendor.p12 -nocerts -passout file:vendorPrivateKey.txt -out vendorKey.pem
-	openssl rsa -passin file:vendorPrivateKey.txt -in vendorKey.pem -out noPasswordVendorPrivate.key
+	openssl pkcs12 -export -passout pass:$vendorPrivateKey -out vendor.p12 -passin fpass:$vendorPrivateKey  -inkey vendorPrivateKey.pem -in mdm.pem 
+	openssl pkcs12 -passin pass:$vendorPrivateKey -in vendor.p12 -nocerts -passout pass:$vendorPrivateKey  -out vendorKey.pem
+	openssl rsa -passin pass:$vendorPrivateKey -in vendorKey.pem -out noPasswordVendorPrivate.key
 	
-	echo -e "\n\n Next, it is necessery to create a customer csr and a private key which we will be signed with the vendor certificate Apple issued. "
+	echo -e "\n\n Next, it is necessery to create a customer csr and a private key which we will be signed with the vendors/siging authority certificate Apple issued. "
 	echo -e "Enter a password for customer private key(minimum password length - 5 charactors): Note that you will need to remember the password for future reference. "
 	read -s customerPrivateKeyPassword;
 	echo $customerPrivateKeyPassword > customerPrivateKey.txt
