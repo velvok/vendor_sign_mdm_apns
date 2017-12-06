@@ -90,7 +90,7 @@ function step3 {
 	echo "All Done!!!!"
 	echo "Summery"
 	echo "Find the MDM_APNSCert.pfx inside the output folder."
-	openssl x509 -in MDM_Certificate.pem -text >> tmp.txt
+	openssl x509 -in ./inputs/MDM_Certificate.pem -text >> tmp.txt
 	python fetchUUID.py
 	rm tmp.txt
 	echo "Password of the MDM_APNSCert.pfx is the password you used for customer private key. This can be found inside customerPrivateKey.txt"
