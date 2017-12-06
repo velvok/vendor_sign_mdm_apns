@@ -49,7 +49,7 @@ function step2 {
 	rm -f plist_encoded
 	vendorPrivateKey=`cat vendorPrivateKey.txt`
 	openssl x509 -inform der -in ./inputs/mdm.cer -out mdm.pem
-	openssl pkcs12 -export -passout pass:$vendorPrivateKey -out vendor.p12 -passin fpass:$vendorPrivateKey  -inkey vendorPrivateKey.pem -in mdm.pem 
+	openssl pkcs12 -export -passout pass:$vendorPrivateKey -out vendor.p12 -passin pass:$vendorPrivateKey  -inkey vendorPrivateKey.pem -in mdm.pem 
 	openssl pkcs12 -passin pass:$vendorPrivateKey -in vendor.p12 -nocerts -passout pass:$vendorPrivateKey  -out vendorKey.pem
 	openssl rsa -passin pass:$vendorPrivateKey -in vendorKey.pem -out noPasswordVendorPrivate.key
 	
