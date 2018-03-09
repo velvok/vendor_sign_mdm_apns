@@ -80,7 +80,7 @@ function step3 {
 	rm -f MDM_APNSCert.pfx
 	rm -f ./output/MDM_APNSCert.pfx
 	openssl rsa -passin file:customerPrivateKey.txt -in customerPrivateKey.pem -out customerKeyNoPass.pem
-	cp MDM_Certificate.pem MDM_APNSCert_tmp.pem
+	cp ./inputs/MDM_Certificate.pem MDM_APNSCert_tmp.pem
 	echo -e "" >> MDM_APNSCert_tmp.pem 
 	cat MDM_APNSCert_tmp.pem customerKeyNoPass.pem > MDM_APNSCert.pem
 	rm MDM_APNSCert_tmp.pem
